@@ -1,98 +1,159 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Image } from "expo-image";
+import { Link } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useState } from "react";
 
 export default function HomeScreen() {
+  const [selectedLanguage, setSelectedLanguage] = useState("Angielski");
+  const [open, setOpen] = useState(false);
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
+    <View style={styles.container}>
+      <View style={styles.topButtons}>
+        <Link href="/tabs2/config" asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Konfiguracja</Text>
+          </TouchableOpacity>
         </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <Link href="/tabs2/authors" asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Autorzy</Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
+
+      <Image
+        source={{
+          uri: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png",
+        }}
+        style={styles.logo}
+      />
+
+      <Text style={styles.title}>LinguaLearn</Text>
+      <Text style={styles.subtitle}>Aplikacja do nauki języków obcych</Text>
+
+      <View style={styles.languageContainer}>
+        <Text style={styles.languageLabel}>Wybierz język</Text>
+
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={() => setOpen(!open)}
+        >
+          <Text style={styles.dropdownText}>🇬🇧 {selectedLanguage}</Text>
+        </TouchableOpacity>
+
+        {open && (
+          <View style={styles.dropdownMenu}>
+            <TouchableOpacity
+              style={styles.option}
+              onPress={() => {
+                setSelectedLanguage("Angielski");
+                setOpen(false);
+              }}
+            >
+              <Text style={styles.optionText}>🇬🇧 Angielski</Text>
+            </TouchableOpacity>
+
+            <View style={styles.option}>
+              <Text style={styles.disabledText}>
+                🇩🇪 Niemiecki (Już wkrótce)
+              </Text>
+            </View>
+
+            <View style={styles.option}>
+              <Text style={styles.disabledText}>
+                🇪🇸 Hiszpański (Już wkrótce)
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#4F46E5",
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
+  topButtons: {
+    position: "absolute",
+    top: 60,
+    flexDirection: "row",
+    gap: 10,
+  },
+  button: {
+    backgroundColor: "white",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  buttonText: {
+    color: "#4F46E5",
+    fontWeight: "bold",
+  },
+  languageContainer: {
+    width: "85%",
+    marginTop: 20,
+  },
+  languageLabel: {
+    color: "white",
     marginBottom: 8,
+    fontSize: 16,
+    fontWeight: "600",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  dropdown: {
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 14,
+  },
+  dropdownText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4F46E5",
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: 95,
+    width: "100%",
+    backgroundColor: "white",
+    borderRadius: 14,
+    marginTop: 10,
+    overflow: "hidden",
+    zIndex: 10,
+  },
+  option: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+  },
+  optionText: {
+    fontSize: 16,
+  },
+  disabledText: {
+    fontSize: 16,
+    color: "#888",
+  },
+  logo: {
+    width: 140,
+    height: 140,
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "white",
+    textAlign: "center",
+    marginBottom: 30,
   },
 });
