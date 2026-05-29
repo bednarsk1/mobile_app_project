@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Audio } from "expo-av";
+import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +13,14 @@ import {
 	View,
 } from "react-native";
 
+Notifications.setNotificationHandler({
+	handleNotification: async () => ({
+		shouldShowBanner: true,
+		shouldShowList: true,
+		shouldPlaySound: true,
+		shouldSetBadge: false,
+	}),
+});
 export default function ConfigScreen() {
 	const [notifications, setNotifications] = useState(true);
 	const [darkMode, setDarkMode] = useState(false);
@@ -44,8 +53,15 @@ export default function ConfigScreen() {
 
 	const changeNotifications = async (value: boolean) => {
 		await playClickSound();
+
 		setNotifications(value);
 		await AsyncStorage.setItem("notifications", value.toString());
+
+		if (value) {
+			await scheduleNotification();
+		} else {
+			await Notifications.cancelAllScheduledNotificationsAsync();
+		}
 	};
 
 	const changeDarkMode = async (value: boolean) => {
@@ -58,6 +74,26 @@ export default function ConfigScreen() {
 		await playClickSound();
 		setSoundEnabled(value);
 		await AsyncStorage.setItem("soundEnabled", value.toString());
+	};
+
+	const scheduleNotification = async () => {
+		const { status } = await Notifications.requestPermissionsAsync();
+
+		if (status !== "granted") return;
+
+		await Notifications.cancelAllScheduledNotificationsAsync();
+
+		await Notifications.scheduleNotificationAsync({
+			content: {
+				title: "LinguaLearn 📚",
+				body: "Czas na naukę języka angielskiego!",
+			},
+			trigger: {
+				type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+				seconds: 10,
+				repeats: false,
+			},
+		});
 	};
 
 	const backgroundColor = darkMode ? "#111827" : "#F5F7FF";

@@ -2,8 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Audio } from "expo-av";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+	Animated,
 	ScrollView,
 	StyleSheet,
 	Text,
@@ -16,6 +17,25 @@ export default function HomeScreen() {
 	const [selectedLanguage, setSelectedLanguage] = useState("Angielski");
 	const [open, setOpen] = useState(false);
 	const [darkMode, setDarkMode] = useState(false);
+
+	const scaleAnim = useRef(new Animated.Value(1)).current;
+
+	useEffect(() => {
+		Animated.loop(
+			Animated.sequence([
+				Animated.timing(scaleAnim, {
+					toValue: 1.08,
+					duration: 900,
+					useNativeDriver: true,
+				}),
+				Animated.timing(scaleAnim, {
+					toValue: 1,
+					duration: 900,
+					useNativeDriver: true,
+				}),
+			]),
+		).start();
+	}, [scaleAnim]);
 
 	const { width, height } = useWindowDimensions();
 	const isLandscape = width > height;
@@ -97,12 +117,14 @@ export default function HomeScreen() {
 				</TouchableOpacity>
 			</View>
 
-			<Image
-				source={{
-					uri: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png",
-				}}
-				style={[styles.logo, isLandscape && styles.logoLandscape]}
-			/>
+			<Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+				<Image
+					source={{
+						uri: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png",
+					}}
+					style={[styles.logo, isLandscape && styles.logoLandscape]}
+				/>
+			</Animated.View>
 
 			<Text style={styles.title}>LinguaLearn</Text>
 			<Text style={styles.subtitle}>Aplikacja do nauki języków obcych</Text>
