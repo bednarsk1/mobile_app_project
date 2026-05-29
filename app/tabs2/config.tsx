@@ -1,92 +1,232 @@
-import { useState } from "react";
-import { StyleSheet, Switch, Text, View, TouchableOpacity } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Audio } from "expo-av";
 import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+	ScrollView,
+	StyleSheet,
+	Switch,
+	Text,
+	TouchableOpacity,
+	useWindowDimensions,
+	View,
+} from "react-native";
 
 export default function ConfigScreen() {
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+	const [notifications, setNotifications] = useState(true);
+	const [darkMode, setDarkMode] = useState(false);
+	const [soundEnabled, setSoundEnabled] = useState(true);
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Ekran konfiguracyjny</Text>
+	const { width, height } = useWindowDimensions();
+	const isLandscape = width > height;
 
-      <View style={styles.optionBox}>
-        <Text style={styles.optionText}>Powiadomienia</Text>
-        <Switch value={notifications} onValueChange={setNotifications} />
-      </View>
+	useEffect(() => {
+		const loadSettings = async () => {
+			const savedNotifications = await AsyncStorage.getItem("notifications");
+			const savedDarkMode = await AsyncStorage.getItem("darkMode");
+			const savedSoundEnabled = await AsyncStorage.getItem("soundEnabled");
 
-      <View style={styles.optionBox}>
-        <Text style={styles.optionText}>Tryb ciemny</Text>
-        <Switch value={darkMode} onValueChange={setDarkMode} />
-      </View>
+			if (savedNotifications !== null) {
+				setNotifications(savedNotifications === "true");
+			}
 
-      <View style={styles.optionBox}>
-        <Text style={styles.optionText}>Dźwięki aplikacji</Text>
-        <Switch value={soundEnabled} onValueChange={setSoundEnabled} />
-      </View>
+			if (savedDarkMode !== null) {
+				setDarkMode(savedDarkMode === "true");
+			}
 
-      <Text style={styles.info}>
-        Tutaj użytkownik może zmieniać ustawienia aplikacji do nauki języków.
-      </Text>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.push("/")}
-      >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-    </View>
-  );
+			if (savedSoundEnabled !== null) {
+				setSoundEnabled(savedSoundEnabled === "true");
+			}
+		};
+
+		loadSettings();
+	}, []);
+
+	const changeNotifications = async (value: boolean) => {
+		await playClickSound();
+		setNotifications(value);
+		await AsyncStorage.setItem("notifications", value.toString());
+	};
+
+	const changeDarkMode = async (value: boolean) => {
+		await playClickSound();
+		setDarkMode(value);
+		await AsyncStorage.setItem("darkMode", value.toString());
+	};
+
+	const changeSoundEnabled = async (value: boolean) => {
+		await playClickSound();
+		setSoundEnabled(value);
+		await AsyncStorage.setItem("soundEnabled", value.toString());
+	};
+
+	const backgroundColor = darkMode ? "#111827" : "#F5F7FF";
+	const cardColor = darkMode ? "#1F2937" : "white";
+	const textColor = darkMode ? "white" : "#111";
+	const descriptionColor = darkMode ? "#D1D5DB" : "#555";
+
+	const playClickSound = async () => {
+		if (!soundEnabled) return;
+
+		const { sound } = await Audio.Sound.createAsync(
+			require("../../assets/sounds/click.wav"),
+		);
+
+		await sound.playAsync();
+	};
+
+	return (
+		<ScrollView
+			style={[styles.scroll, { backgroundColor }]}
+			contentContainerStyle={[
+				styles.container,
+				{ backgroundColor },
+				isLandscape && styles.containerLandscape,
+			]}
+			showsVerticalScrollIndicator={false}>
+			<Text style={[styles.title, isLandscape && styles.titleLandscape]}>
+				Konfiguracja
+			</Text>
+
+			<View style={[styles.content, isLandscape && styles.contentLandscape]}>
+				<View style={[styles.optionBox, { backgroundColor: cardColor }]}>
+					<View style={styles.optionTextBox}>
+						<Text style={[styles.optionText, { color: textColor }]}>
+							Powiadomienia
+						</Text>
+
+						<Text
+							style={[styles.optionDescription, { color: descriptionColor }]}>
+							Przypomnienia o codziennej nauce
+						</Text>
+					</View>
+
+					<Switch value={notifications} onValueChange={changeNotifications} />
+				</View>
+
+				<View style={[styles.optionBox, { backgroundColor: cardColor }]}>
+					<View style={styles.optionTextBox}>
+						<Text style={[styles.optionText, { color: textColor }]}>
+							Tryb ciemny
+						</Text>
+
+						<Text
+							style={[styles.optionDescription, { color: descriptionColor }]}>
+							Zmiana wyglądu ekranu konfiguracji
+						</Text>
+					</View>
+
+					<Switch value={darkMode} onValueChange={changeDarkMode} />
+				</View>
+
+				<View style={[styles.optionBox, { backgroundColor: cardColor }]}>
+					<View style={styles.optionTextBox}>
+						<Text style={[styles.optionText, { color: textColor }]}>
+							Dźwięki aplikacji
+						</Text>
+
+						<Text
+							style={[styles.optionDescription, { color: descriptionColor }]}>
+							Dźwięki poprawnych i błędnych odpowiedzi
+						</Text>
+					</View>
+
+					<Switch value={soundEnabled} onValueChange={changeSoundEnabled} />
+				</View>
+			</View>
+
+			<TouchableOpacity
+				style={styles.backButton}
+				onPress={async () => {
+					await playClickSound();
+					router.push("/");
+				}}>
+				<Text style={styles.backButtonText}>←</Text>
+			</TouchableOpacity>
+		</ScrollView>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F7FF",
-    padding: 25,
-    paddingTop: 80,
-  },
-  backButton: {
-    backgroundColor: "#4F46E5",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    position: "absolute",
-    right: 25,
-    bottom: 40,
-    width: 55,
-    height: 55,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backButtonText: {
-    color: "white",
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#4F46E5",
-    marginBottom: 30,
-  },
-  optionBox: {
-    backgroundColor: "white",
-    padding: 18,
-    borderRadius: 14,
-    marginBottom: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  optionText: {
-    fontSize: 18,
-    color: "#111",
-  },
-  info: {
-    marginTop: 20,
-    fontSize: 16,
-    color: "#555",
-    lineHeight: 24,
-  },
+	scroll: {
+		flex: 1,
+	},
+
+	container: {
+		flexGrow: 1,
+		padding: 25,
+		paddingTop: 80,
+		paddingBottom: 100,
+	},
+
+	containerLandscape: {
+		paddingTop: 30,
+		paddingBottom: 40,
+		justifyContent: "center",
+	},
+
+	title: {
+		fontSize: 30,
+		fontWeight: "bold",
+		color: "#4F46E5",
+		marginBottom: 30,
+	},
+
+	titleLandscape: {
+		fontSize: 26,
+		marginBottom: 18,
+		textAlign: "center",
+	},
+
+	content: {
+		width: "100%",
+	},
+
+	contentLandscape: {
+		maxWidth: 700,
+		alignSelf: "center",
+	},
+
+	optionBox: {
+		padding: 18,
+		borderRadius: 14,
+		marginBottom: 16,
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		gap: 12,
+	},
+
+	optionTextBox: {
+		flex: 1,
+	},
+
+	optionText: {
+		fontSize: 18,
+		fontWeight: "600",
+	},
+
+	optionDescription: {
+		fontSize: 14,
+		marginTop: 4,
+	},
+
+	backButton: {
+		backgroundColor: "#4F46E5",
+		paddingVertical: 10,
+		paddingHorizontal: 18,
+		borderRadius: 12,
+		marginTop: 25,
+		width: 55,
+		height: 55,
+		justifyContent: "center",
+		alignItems: "center",
+		alignSelf: "flex-end",
+	},
+
+	backButtonText: {
+		color: "white",
+		fontSize: 28,
+		fontWeight: "bold",
+	},
 });
